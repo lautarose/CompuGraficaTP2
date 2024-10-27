@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
+# -- coding: utf-8 --
+
 #  povview_things.py
-#
-#  Copyright 2024 John Coppens <john@jcoppens.com>
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,21 +10,12 @@
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#  MA 02110-1301, USA.
-#
-#
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('GooCanvas', '2.0')
 from gi.repository import Gtk, GooCanvas
-
 from math import cos, sin, pi
 
 SUBDIV = 12
@@ -40,7 +29,7 @@ class Vec3:
         self.x, self.y, self.z = x, y, z
 
 class RGB:
-    def __init__(self, r, g = None, b = None):
+    def __init__(self, r, g=None, b=None):
         if isinstance(r, list):
             self._rgb = r
         else:
@@ -66,11 +55,6 @@ class RGB:
         return self._rgb
 
 class Cone(ThreeD_object):
-    """ tc      self.tc     vec3    Cone top center
-        tr      self.tr     float   Cone top radius
-        bc      self.bc     vec3    Cone bottom center
-        br      self.br     float   Cone bottom radius
-    """
     def __init__(self, cone_par):
         self.tc = cone_par[0]
         self.tr = cone_par[1]
@@ -80,25 +64,18 @@ class Cone(ThreeD_object):
 
     def __str__(self):
         return (f'Cone:\n'
-                f'top:    {self.tc[0]:10g}, {self.tc[1]:10g}, {self.tc[2]:10g}'
-                f' radius: {self.tr:10g}\n'
-                f'bottom: {self.bc[0]:10g}, {self.bc[1]:10g}, {self.bc[2]:10g}'
-                f' radius: {self.br:10g}\n')
+                f'top:    {self.tc[0]:10g}, {self.tc[1]:10g}, {self.tc[2]:10g} radius: {self.tr:10g}\n'
+                f'bottom: {self.bc[0]:10g}, {self.bc[1]:10g}, {self.bc[2]:10g} radius: {self.br:10g}\n')
 
     def create_wireframe(self):
-        self.tx = []
-        self.ty = []
-        self.tz = []
-        self.bx = []
-        self.by = []
-        self.bz = []
+        self.tx, self.ty, self.tz = [], [], []
+        self.bx, self.by, self.bz = [], [], []
         dsub = 2 * pi / SUBDIV
 
         for i in range(SUBDIV):
             self.tx += [self.tc[0] + self.tr * cos(dsub * i)]
             self.ty += [-self.tc[1]]
             self.tz += [self.tc[2] + self.tr * sin(dsub * i)]
-
             self.bx += [self.bc[0] + self.br * cos(dsub * i)]
             self.by += [-self.bc[1]]
             self.bz += [self.bc[2] + self.br * sin(dsub * i)]
@@ -117,8 +94,7 @@ class Cone(ThreeD_object):
             svg += 'Z '
 
             for s in range(SUBDIV):
-                svg += (f"M{self.tx[s]:g},{self.ty[s]:g} "
-                        f"L{self.bx[s]:g},{self.by[s]:g} ")
+                svg += f"M{self.tx[s]:g},{self.ty[s]:g} L{self.bx[s]:g},{self.by[s]:g} "
 
         elif side == 'yz':
             svg += f"M{self.tz[0]:g},{self.ty[0]:g} "
@@ -132,8 +108,7 @@ class Cone(ThreeD_object):
             svg += 'Z '
 
             for s in range(SUBDIV):
-                svg += (f"M{self.tz[s]:g},{self.ty[s]:g} "
-                        f"L{self.bz[s]:g},{self.by[s]:g} ")
+                svg += f"M{self.tz[s]:g},{self.ty[s]:g} L{self.bz[s]:g},{self.by[s]:g} "
 
         else:  # zx
             svg += f"M{self.tx[0]:g},{self.tz[0]:g} "
@@ -147,8 +122,7 @@ class Cone(ThreeD_object):
             svg += 'Z '
 
             for s in range(SUBDIV):
-                svg += (f"M{self.tx[s]:g},{self.tz[s]:g} "
-                        f"L{self.bx[s]:g},{self.bz[s]:g} ")
+                svg += f"M{self.tx[s]:g},{self.tz[s]:g} L{self.bx[s]:g},{self.bz[s]:g} "
 
         return svg
 
@@ -156,17 +130,16 @@ class Cone(ThreeD_object):
         for view in ['xy', 'yz', 'zx']:
             root = views[view]['canvas'].get_root_item()
             GooCanvas.CanvasPath(
-                        parent=root,
-                        data=self.to_svg(view),
-                        line_width=1,
-                        stroke_color='Blue',
-                        fill_color=None)
+                parent=root,
+                data=self.to_svg(view),
+                line_width=1,
+                stroke_color='Blue',
+                fill_color=None)
 
 class Box(ThreeD_object):
     def __init__(self, box_par):
-        # box_par debe contener las dos esquinas opuestas del box
-        self.corner1 = box_par[0]  # Primer vértice del box (vector 3D)
-        self.corner2 = box_par[1]  # Segundo vértice opuesto del box (vector 3D)
+        self.corner1 = box_par[0]
+        self.corner2 = box_par[1]
         self.create_wireframe()
 
     def __str__(self):
@@ -185,55 +158,45 @@ class Box(ThreeD_object):
 
     def to_svg(self, side):
         svg = ""
-        
         if side == 'xy':
-            # Base (z_min)
             svg += f"M{self.vertices[0][0]},{self.vertices[0][1]} "
             for i in range(1, 4):
                 svg += f"L{self.vertices[i][0]},{self.vertices[i][1]} "
-            svg += f"L{self.vertices[0][0]},{self.vertices[0][1]} "  # Cierra el contorno de la base
+            svg += f"L{self.vertices[0][0]},{self.vertices[0][1]} "
 
-            # Tapa (z_max)
             svg += f"M{self.vertices[4][0]},{self.vertices[4][1]} "
             for i in range(5, 8):
                 svg += f"L{self.vertices[i][0]},{self.vertices[i][1]} "
-            svg += f"L{self.vertices[4][0]},{self.vertices[4][1]} "  # Cierra el contorno de la tapa
+            svg += f"L{self.vertices[4][0]},{self.vertices[4][1]} "
 
-            # Conexiones entre la base y la tapa
             for i in range(4):
                 svg += f"M{self.vertices[i][0]},{self.vertices[i][1]} L{self.vertices[i+4][0]},{self.vertices[i+4][1]} "
 
         elif side == 'yz':
-            # Base (x_min)
             svg += f"M{self.vertices[0][2]},{self.vertices[0][1]} "
             for i in range(1, 4):
                 svg += f"L{self.vertices[i][2]},{self.vertices[i][1]} "
-            svg += f"L{self.vertices[0][2]},{self.vertices[0][1]} "  # Cierra el contorno de la base
+            svg += f"L{self.vertices[0][2]},{self.vertices[0][1]} "
 
-            # Tapa (x_max)
             svg += f"M{self.vertices[4][2]},{self.vertices[4][1]} "
             for i in range(5, 8):
                 svg += f"L{self.vertices[i][2]},{self.vertices[i][1]} "
-            svg += f"L{self.vertices[4][2]},{self.vertices[4][1]} "  # Cierra el contorno de la tapa
+            svg += f"L{self.vertices[4][2]},{self.vertices[4][1]} "
 
-            # Conexiones entre la base y la tapa
             for i in range(4):
                 svg += f"M{self.vertices[i][2]},{self.vertices[i][1]} L{self.vertices[i+4][2]},{self.vertices[i+4][1]} "
 
         else:  # zx
-            # Base (y_min)
             svg += f"M{self.vertices[0][0]},{self.vertices[0][2]} "
             for i in range(1, 4):
                 svg += f"L{self.vertices[i][0]},{self.vertices[i][2]} "
-            svg += f"L{self.vertices[0][0]},{self.vertices[0][2]} "  # Cierra el contorno de la base
+            svg += f"L{self.vertices[0][0]},{self.vertices[0][2]} "
 
-            # Tapa (y_max)
             svg += f"M{self.vertices[4][0]},{self.vertices[4][2]} "
             for i in range(5, 8):
                 svg += f"L{self.vertices[i][0]},{self.vertices[i][2]} "
-            svg += f"L{self.vertices[4][0]},{self.vertices[4][2]} "  # Cierra el contorno de la tapa
+            svg += f"L{self.vertices[4][0]},{self.vertices[4][2]} "
 
-            # Conexiones entre la base y la tapa
             for i in range(4):
                 svg += f"M{self.vertices[i][0]},{self.vertices[i][2]} L{self.vertices[i+4][0]},{self.vertices[i+4][2]} "
 
@@ -248,3 +211,49 @@ class Box(ThreeD_object):
                 line_width=1,
                 stroke_color='Red',
                 fill_color=None)
+
+class MainWindow(Gtk.Window):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.connect("destroy", lambda x: Gtk.main_quit())
+        self.set_default_size(400, 300)
+
+        self.canvas = GooCanvas.Canvas(
+            automatic_bounds=True,
+            bounds_from_origin=False,
+            bounds_padding=10
+        )
+        cvroot = self.canvas.get_root_item()
+
+        views = {
+            'xy': {'canvas': self.canvas},
+            'yz': {'canvas': self.canvas},
+            'zx': {'canvas': self.canvas}
+        }
+
+
+        box = Box([[0, 0, 0], [40, 40, 40]])
+        box.draw_on(views)
+
+        bounds = self.canvas.get_bounds()
+        print('Bounds:', bounds)
+        self.set_scale(4)
+
+        self.add(self.canvas)
+        self.show_all()
+
+    def run(self):
+        Gtk.main()
+
+    def set_scale(self, scale):
+        self.canvas.set_scale(scale)
+
+
+def main(args):
+    mainwdw = MainWindow()
+    mainwdw.run()
+    return 0
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main(sys.argv))
